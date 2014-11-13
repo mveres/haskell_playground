@@ -10,7 +10,9 @@ newtype Parser a =  P (String -> [(a,String)])
 
 instance Monad Parser where
     return v                   =  P (\inp -> [(v,inp)])
-    p >>= f                    =  P
+    p >>= f                    =  P (\inp -> case parse p inp of
+                                                [(v, out)] -> parse (f v) out
+                                                [] -> [])
 
 instance MonadPlus Parser where
     mzero                      =  P (\inp -> [])
@@ -87,17 +89,27 @@ nat                           =  do xs <- many1 digit
                                     return (read xs)
 
 int                           :: Parser Int
-int                           =  undefined
+int                           =  (do char '-'
+                                     n <- nat
+                                     return (-n))
+                                  +++ nat
 
 space                         :: Parser ()
 space                         =  do many (sat isSpace)
                                     return ()
 
 comment                       :: Parser ()
-comment                       = undefined
+comment                       = do string "--"
+                                   many (sat (/= '\n'))
+                                   return ()
 
 expr                          :: Parser Int
-expr                          = undefined
+expr                          = do
+                                    n <- natural
+                                    ns <- many
+                                            (do symbol "-"
+                                                natural)
+                                    return (foldl (-) n ns)
 
 -- Ignoring spacing --
 ----------------------
