@@ -10,7 +10,7 @@ newtype Parser a =  P (String -> [(a,String)])
 
 instance Monad Parser where
     return v                   =  P (\inp -> [(v,inp)])
-    p >>= f                    =  undefined
+    p >>= f                    =  P
 
 instance MonadPlus Parser where
     mzero                      =  P (\inp -> [])
